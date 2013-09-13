@@ -46,20 +46,21 @@ abstract class Deploy {
 	 * @link    http://www.php.net/manual/en/function.date.php
 	 */
 	private static $_date_format = 'Y-m-d H:i:sP';
-	
-	/**
-	 * Registers available repos for deployement
-	 *
-	 * @param array $repo The repo information and the path information for deployment
-	 * @return bool True on success, false on failure.
-	 */
+
+    /**
+     * Registers available repos for deployment
+     *
+     * @param string $name The name of the repo we are attempting deployment for.
+     * @param array $repo The repo information and the path information for deployment
+     * @return bool True on success, false on failure.
+     */
 	public static function register_repo( $name, $repo ) {
 		if ( ! is_string( $name ) )
 			return false;
 
 		if ( ! is_array( $repo ) )
 			return false;
-		
+
 		$required_keys = array( 'path', 'branch' );
 		foreach ( $required_keys as $key ) {
 			if ( ! array_key_exists( $key, $repo ) )
@@ -74,13 +75,17 @@ abstract class Deploy {
 		$repo = array_merge( $defaults, $repo );
 
 		self::$repos[ $name ] = $repo;
+
+        return true;
 	}
 
-	/**
-	 * Allows alternate log locations and date formats
-	 *
-	 * @return void.
-	 */
+    /**
+     * Allows alternate log locations and date formats
+     *
+     * @param $var
+     * @param $value
+     * @return void.
+     */
 	public static function set( $var, $value ) {
 		if ( ( 'log_name' === $var || 'date_format' === $var ) && is_string( $value ) )
 			self::${'_'.$var} = $value;
@@ -107,7 +112,7 @@ abstract class Deploy {
 	private $_remote;
 
 	/**
-	 * The path to where your website and git repository are located, can be 
+	 * The path to where your website and git repository are located, can be
 	 * a relative or absolute path
 	 */
 	private $_path;
@@ -122,11 +127,12 @@ abstract class Deploy {
 	 */
 	private $_commit;
 
-	/**
-	 * Sets up the repo information.
-	 * 
-	 * @param 	array 	$repo 	The repository info. See class block for docs.
-	 */
+    /**
+     * Sets up the repo information.
+     *
+     * @param string $name The name of the repo we are attempting deployment for.
+     * @param array $repo The repository info. See class block for docs.
+     */
 	protected function __construct( $name, $repo ) {
 		$this->_path = realpath( $repo['path'] ) . DIRECTORY_SEPARATOR;
 
@@ -145,7 +151,7 @@ abstract class Deploy {
 
 	/**
 	 * Writes a message to the log file.
-	 * 
+	 *
 	 * @param 	string 	$message 	The message to write
 	 * @param 	string 	$type 		The type of log message (e.g. INFO, DEBUG, ERROR, etc.)
 	 */
@@ -188,7 +194,7 @@ abstract class Deploy {
 			if ( is_callable( $this->_post_deploy ) )
 				call_user_func( $this->_post_deploy );
 
-			$this->log( '[SHA: ' . $this->_commit . '] Deployment of ' . $this->_name . ' from branch ' . $this->_branch . ' successful' );
+			$this->log( '[SHA: ' . $this->_commit . '] Deployment of ' . $this->_name . ' from branch ' . $this->_branch . ' successful');
 		} catch ( Exception $e ) {
 			$this->log( $e, 'ERROR' );
 		}
