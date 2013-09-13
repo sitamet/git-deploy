@@ -187,7 +187,7 @@ abstract class Deploy {
         try {
             // Make sure we're in the right directory
             $result = chdir( $this->_path);
-            if (!empty($result)) throw new Exception('error on chdir');
+            if ($result !== true) throw new Exception('error on chdir');
 
             // Discard any changes to tracked files since our last deploy
             $this->executeCommand('git reset --hard HEAD');
