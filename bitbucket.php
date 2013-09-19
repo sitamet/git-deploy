@@ -22,13 +22,31 @@ class BitBucket_Deploy extends Deploy {
 	function __construct( $payload ) {
 		$payload = json_decode( stripslashes( $_POST['payload'] ), true );
 		$name = $payload['repository']['name'];
-		$this->log( $payload['commits'][0]['branch'] );
-		if ( isset( parent::$repos[ $name ] ) && parent::$repos[ $name ]['branch'] === $payload['commits'][0]['branch'] ) {
+
+        // bitbucket bug: https://bitbucket.org/site/master/issue/5938/include-branch-and-tag-information-for
+        // when payload carries multiple commits, branch name can not be in first commit
+
+        $branchName = $this->getCommitsBranchName($payload['commits']);
+
+		$this->log( $branchName );
+		if ( isset( parent::$repos[ $name ] ) && parent::$repos[ $name ]['branch'] === $branchName ) {
 			$data = parent::$repos[ $name ];
 			$data['commit'] = $payload['commits'][0]['node'];
 			parent::__construct( $name, $data );
 		}
 	}
+
+
+    private function getCommitsBranchName($commits) {
+        $branchName = null;
+
+        while((list(, $commit) = each($commits)) && $branchName == null) {
+            if ($commit['branch'] !== null)  $branchName = $commit['branch'];
+        }
+
+        return $branchName;
+    }
+
 }
 // Start the deploy attempt.
 new BitBucket_Deploy( $_POST['payload'] );
